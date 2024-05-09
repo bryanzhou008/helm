@@ -25,6 +25,32 @@ from helm.benchmark.run_spec import RunSpec, run_spec_function
 from helm.benchmark.runner import get_benchmark_output_path
 from helm.benchmark.scenarios.scenario import ScenarioSpec, get_scenario_cache_path
 
+@run_spec_function("Behavior_Goal_Interpretation")
+def get_behavior_goal_interpretation_spec(path) -> RunSpec:
+    """
+        Defines Adapter Specs and Run Specs for B-100 Goal Interpretation
+    """
+    
+    scenario_spec = ScenarioSpec(
+        class_name="helm.benchmark.scenarios.behavior_goal_interpretation_scenario.Behavior_Goal_Interpretation_Scenario",
+        args={},
+    )
+
+    # Create AdapterSpec based on the GSM8K paper: https://arxiv.org/pdf/2110.14168.pdf
+    adapter_spec = get_generation_adapter_spec(
+        max_train_instances=5,
+        max_tokens=1024,
+        stop_sequences=["&*%!@#"],
+    )
+
+    return RunSpec(
+        name="behavior_goal_interpretation",
+        scenario_spec=scenario_spec,
+        adapter_spec=adapter_spec,
+        metric_specs=get_behavior_goal_interpretation_metric_specs(),
+        groups=["behavior_goal_interpretation"],
+    )
+
 
 @run_spec_function("narrative_qa")
 def get_narrativeqa_spec() -> RunSpec:

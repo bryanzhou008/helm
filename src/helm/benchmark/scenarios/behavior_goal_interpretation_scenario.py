@@ -54,3 +54,4 @@ class Behavior_Goal_Interpretation_Scenario(Scenario):
             instances.append(instance)
 
         return instances
+    
