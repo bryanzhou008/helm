@@ -1,5 +1,6 @@
 import json
 from typing import List, Optional
+import re
 
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -93,7 +94,8 @@ def is_node_condition(condition):
         for state in object_states["edge_states"]:
             if is_state_condition(state, condition):
                 return False
-        raise ValueError("Invalid condition")
+        print("cannot check based on state", condition)
+        assert(0 == 1)
             
     # if that does not work, check based on the length of the condition
     except:
@@ -103,14 +105,18 @@ def is_node_condition(condition):
             elif len(condition[1]) == 3:
                 return False
             else:
-                raise ValueError("Invalid condition")
+                return False
+                # TODO will fix this later
+                raise ValueError("Invalid condition", condition)
         else:
             if len(condition) == 2:
                 return True
             elif len(condition) == 3:
                 return False
             else:
-                raise ValueError("Invalid condition")
+                return False
+                # TODO will fix this later
+                raise ValueError("Invalid condition", condition)
 
 def is_state_condition(state, condition):
     """check if the given condition is about the given state."""
@@ -172,6 +178,32 @@ def compute_breakdown_metrics(all_satisfied_conditions, all_unsatisfied_conditio
         'edge_metrics': edge_metrics
     }
 
+def parse_json(raw_llm_output):
+    
+    # replace single quotes with double quotes:
+    raw_llm_output = raw_llm_output.replace("'", '"')
+    # Extract the substring between the first { and last }
+    match = re.search(r"{.*}", raw_llm_output, re.DOTALL)
+
+    if match:
+        result = match.group(0)
+
+        # Remove inner curly braces
+        result_clean = re.sub(r"[{}]", "", result[1:-1])
+
+        # Re-add the outer curly braces
+        final_result = "{" + result_clean + "}"
+        
+        with open('final_result.txt', 'w') as file:
+            file.write(final_result)
+
+        # Print the final cleaned result
+        return json.loads(final_result)
+    else:
+        print("No valid JSON-like content found.")
+        with open('raw_llm_output.txt', 'w') as file:
+            file.write(raw_llm_output)
+
 
 class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
     """
@@ -187,7 +219,8 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
         
         for request_state in request_states:
             goal_conds = request_state.instance.references[0].output.text['goal_conditions']
-            model_pred = json.loads(request_state.result.completions[0].text)
+            raw_llm_output = request_state.result.completions[0].text
+            model_pred = parse_json(raw_llm_output)
             
             result_reference_list.append(
                 {
@@ -199,9 +232,9 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
         
         evaluation_results = evaluate_dataset(result_reference_list)
         
-        print("----------------------------------------------------------------------------------------")
-        print("evaluation_results:", evaluation_results)
-        print("----------------------------------------------------------------------------------------")
+        # print("----------------------------------------------------------------------------------------")
+        # print("evaluation_results:", evaluation_results)
+        # print("----------------------------------------------------------------------------------------")
             
         precision = Stat(MetricName("precision"))
         precision.add(evaluation_results['complete_metrics']['precision'])
@@ -213,23 +246,5 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
         f1_score.add(evaluation_results['complete_metrics']['f1_score'])
         
         stats = [precision, recall, f1_score]
-            # print("----------------------------------------------------------------------------------------")
-            # # print("request_state:", type(request_state.instance))
-            # # print("request_state.result:", model_preds)
-            # print("references:", goal_conditions)
-            # print("----------------------------------------------------------------------------------------")
-    
-
-        #     assert request_state.result is not None
-        #     request_result: RequestResult = request_state.result
-        #     # Filter out empty completions
-        #     completions: List[str] = [
-        #         completion.text.strip() for completion in request_result.completions if completion.text
-        #     ]
-
-        #     for completion in completions:
-        #         print("----------------------------------------------------------------------------------------")
-        #         print("completion:", completion)
-        #         print("----------------------------------------------------------------------------------------")
         
         return stats

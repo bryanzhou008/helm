@@ -20,6 +20,7 @@ from helm.benchmark.metrics.common_metric_specs import (
     get_generative_harms_metric_specs,
     get_generic_metric_specs,
     get_open_ended_generation_metric_specs,
+    get_behavior_goal_interpretation_metric_specs,
 )
 from helm.benchmark.run_spec import RunSpec, run_spec_function
 from helm.benchmark.runner import get_benchmark_output_path
@@ -39,7 +40,7 @@ def get_behavior_goal_interpretation_spec(path) -> RunSpec:
     # Create AdapterSpec based on the GSM8K paper: https://arxiv.org/pdf/2110.14168.pdf
     adapter_spec = get_generation_adapter_spec(
         max_train_instances=5,
-        max_tokens=1024,
+        max_tokens=2048,
         stop_sequences=["&*%!@#"],
     )
 

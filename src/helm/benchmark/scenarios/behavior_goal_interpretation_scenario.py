@@ -19,6 +19,8 @@ class Behavior_Goal_Interpretation_Scenario(Scenario):
 
     def __init__(self):
         super().__init__()
+        import vertexai
+        vertexai.init()
 
     def download_data(self, path: str):
         ensure_file_downloaded(
@@ -54,4 +56,3 @@ class Behavior_Goal_Interpretation_Scenario(Scenario):
             instances.append(instance)
 
         return instances
-    
