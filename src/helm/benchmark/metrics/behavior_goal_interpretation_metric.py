@@ -52,7 +52,8 @@ def evaluate_dataset(result_reference_list):
     for tuple in result_reference_list:
         goal_conds = tuple["reference"]
         model_pred = tuple["llm_output"]
-        eval_result = evaluate_goals(model_pred, goal_conds)
+        if model_pred is not None:
+            eval_result = evaluate_goals(model_pred, goal_conds)
         
         all_satisfied_conditions.extend(eval_result['complete_metrics']['all_satisfied_conditions'])
         all_unsatisfied_conditions.extend(eval_result['complete_metrics']['all_unsatisfied_conditions'])
@@ -182,6 +183,7 @@ def parse_json(raw_llm_output):
     
     # replace single quotes with double quotes:
     raw_llm_output = raw_llm_output.replace("'", '"')
+    
     # Extract the substring between the first { and last }
     match = re.search(r"{.*}", raw_llm_output, re.DOTALL)
 
@@ -198,11 +200,16 @@ def parse_json(raw_llm_output):
             file.write(final_result)
 
         # Print the final cleaned result
-        return json.loads(final_result)
+        try:
+            return json.loads(final_result)
+        except:
+            print("Error parsing JSON-like content.")
+            with open('jsonload.txt', 'w') as file:
+                file.write(final_result)
     else:
         print("No valid JSON-like content found.")
-        with open('raw_llm_output.txt', 'w') as file:
-            file.write(raw_llm_output)
+        with open('jsonload.txt', 'w') as file:
+            file.write(final_result)
 
 
 class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
@@ -220,6 +227,13 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
         for request_state in request_states:
             goal_conds = request_state.instance.references[0].output.text['goal_conditions']
             raw_llm_output = request_state.result.completions[0].text
+            
+            print("request_state.result:", request_state.result)
+            
+            with open('goal_conds.txt', 'w') as file:
+                file.write(str(goal_conds))
+            with open('raw_llm_output.txt', 'w') as file:
+                file.write(raw_llm_output)
             model_pred = parse_json(raw_llm_output)
             
             result_reference_list.append(
@@ -245,6 +259,12 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
         f1_score = Stat(MetricName("f1_score"))
         f1_score.add(evaluation_results['complete_metrics']['f1_score'])
         
-        stats = [precision, recall, f1_score]
+        node_f1_score = Stat(MetricName("node_f1_score"))
+        node_f1_score.add(evaluation_results['node_metrics']['f1_score'])
+        
+        edge_f1_score = Stat(MetricName("edge_f1_score"))
+        edge_f1_score.add(evaluation_results['edge_metrics']['f1_score'])
+        
+        stats = [precision, recall, f1_score, node_f1_score, edge_f1_score]
         
         return stats

@@ -3,6 +3,14 @@ from typing import Any, Dict, List, Optional
 
 from helm.benchmark.metrics.metric import MetricSpec
 
+def get_behavior_goal_interpretation_metric_specs() -> List[MetricSpec]:
+    return [
+        MetricSpec(
+            class_name="helm.benchmark.metrics.behavior_goal_interpretation_metric.Behavior_Goal_Interpretation_Metric",
+            args={},
+        )
+    ]
+
 
 def get_basic_generation_metric_specs(names: List[str]) -> List[MetricSpec]:
     return [
