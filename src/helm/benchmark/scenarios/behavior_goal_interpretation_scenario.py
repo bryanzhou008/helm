@@ -17,8 +17,9 @@ class Behavior_Goal_Interpretation_Scenario(Scenario):
     description = "Interpretation of Behavior-100 Task Goal Conditions from Natural Language form to Symbolic Form"
     tags = ["instructions"]
 
-    def __init__(self):
+    def __init__(self, mode):
         super().__init__()
+        self.mode = mode
 
     def download_data(self, path: str):
         ensure_file_downloaded(

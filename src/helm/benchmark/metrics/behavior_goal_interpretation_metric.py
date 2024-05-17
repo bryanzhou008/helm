@@ -208,8 +208,7 @@ def parse_json(raw_llm_output):
                 file.write(final_result)
     else:
         print("No valid JSON-like content found.")
-        with open('jsonload.txt', 'w') as file:
-            file.write(final_result)
+
 
 
 class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
@@ -228,8 +227,8 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
             goal_conds = request_state.instance.references[0].output.text['goal_conditions']
             raw_llm_output = request_state.result.completions[0].text
             
-            print("request_state.result:", request_state.result)
-            
+            with open('intermediate_outputs/request_state.txt', 'w') as file:
+                file.write(str(request_state))
             with open('goal_conds.txt', 'w') as file:
                 file.write(str(goal_conds))
             with open('raw_llm_output.txt', 'w') as file:

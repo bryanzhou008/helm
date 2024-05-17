@@ -5,6 +5,7 @@ Website: https://crfm.stanford.edu/helm/lite/"""
 from helm.benchmark.adaptation.adapter_spec import (
     ADAPT_GENERATION,
     ADAPT_MULTIPLE_CHOICE_JOINT,
+    ADAPT_GENERATION_MULTIMODAL,
     AdapterSpec,
 )
 from helm.benchmark.adaptation.common_adapter_specs import (
@@ -27,22 +28,38 @@ from helm.benchmark.runner import get_benchmark_output_path
 from helm.benchmark.scenarios.scenario import ScenarioSpec, get_scenario_cache_path
 
 @run_spec_function("Behavior_Goal_Interpretation")
-def get_behavior_goal_interpretation_spec(path) -> RunSpec:
+def get_behavior_goal_interpretation_spec(mode:str) -> RunSpec:
     """
         Defines Adapter Specs and Run Specs for B-100 Goal Interpretation
     """
     
     scenario_spec = ScenarioSpec(
         class_name="helm.benchmark.scenarios.behavior_goal_interpretation_scenario.Behavior_Goal_Interpretation_Scenario",
-        args={},
+        args={"mode": mode},
     )
-
-    # Create AdapterSpec based on the GSM8K paper: https://arxiv.org/pdf/2110.14168.pdf
-    adapter_spec = get_generation_adapter_spec(
-        max_train_instances=5,
-        max_tokens=2048,
-        stop_sequences=["&*%!@#"],
-    )
+    
+    if mode == "text-only":
+        adapter_spec = get_generation_adapter_spec(
+            instructions = "For this task, only output a parsable JSON string in the prompt specified format! Don't include any explanations with the JSON!",
+            max_train_instances=0,
+            max_tokens=2048,
+            stop_sequences=["&*%!@#"],
+        )
+    elif mode == "multimodal":
+        adapter_spec = AdapterSpec(
+            method=ADAPT_GENERATION_MULTIMODAL,
+            instructions="For this task, only output a parsable JSON string in the prompt specified format! Don't include any explanations with the JSON! \n",
+            input_prefix="",
+            input_suffix="\n",
+            output_prefix="",
+            output_suffix="\n",
+            max_train_instances=0,
+            num_outputs=1,
+            max_tokens=2048,
+            temperature=0.0,
+            stop_sequences=["&*%!@#"],
+            multi_label=False,
+        )
 
     return RunSpec(
         name="behavior_goal_interpretation",
