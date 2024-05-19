@@ -40,15 +40,17 @@ def get_behavior_goal_interpretation_spec(mode:str) -> RunSpec:
     
     if mode == "text-only":
         adapter_spec = get_generation_adapter_spec(
-            instructions = "For this task, only output a parsable JSON string in the prompt specified format! Don't include any explanations with the JSON!",
+            instructions="For this task, only output a parsable json string in the specified format! Don't include any notes or explanations with your json output!",
+            # instructions="For this task, only output a parsable json string in the specified format! Don't include any notes or explanations with your json output! When you are finished, please generate the stop sequence: <FINISHED>",
             max_train_instances=0,
             max_tokens=2048,
-            stop_sequences=["&*%!@#"],
+            stop_sequences=["}"],
+            # stop_sequences=["}", "<FINISHED>"],
         )
     elif mode == "multimodal":
         adapter_spec = AdapterSpec(
             method=ADAPT_GENERATION_MULTIMODAL,
-            instructions="For this task, only output a parsable JSON string in the prompt specified format! Don't include any explanations with the JSON! \n",
+            instructions="For this task, only output a parsable json string in the specified format! Don't include any notes or explanations with your json output! When you are finished, please generate the stop sequence: <FINISHED>",
             input_prefix="",
             input_suffix="\n",
             output_prefix="",
@@ -57,7 +59,7 @@ def get_behavior_goal_interpretation_spec(mode:str) -> RunSpec:
             num_outputs=1,
             max_tokens=2048,
             temperature=0.0,
-            stop_sequences=["&*%!@#"],
+            stop_sequences=["}", "<FINISHED>"],
             multi_label=False,
         )
 

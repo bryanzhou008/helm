@@ -2,10 +2,12 @@ import csv
 import os
 import json
 from typing import Dict, List
+from PIL import Image
 
 from .scenario import Scenario, Instance, Reference, TRAIN_SPLIT, VALID_SPLIT, TEST_SPLIT, CORRECT_TAG, Input, Output
 from .grammar import read_grammar, generate_derivations, Derivation, get_values, get_tags
 from helm.common.general import ensure_file_downloaded
+from helm.common.media_object import MediaObject, MultimediaObject
 
 
 class Behavior_Goal_Interpretation_Scenario(Scenario):
@@ -45,10 +47,16 @@ class Behavior_Goal_Interpretation_Scenario(Scenario):
 
         with open(reference_path, "r") as json_file:
             demo_to_conds = json.load(json_file)
-
-        for key, value in demo_to_prompt.items():
+            
+        if self.mode == "text-only":
+            multimedia_content = None
+        elif self.mode == "multimodal":
+            multimedia_content = MultimediaObject([MediaObject(content_type='image/png', location='/local1/bryanzhou008/cache/eval/notebooks/blank_white_image.png')])
+            
+        # include the index here for debugging purposes
+        for index, (key, value) in enumerate(demo_to_prompt.items()):
             instance = Instance(
-                input=Input(text=value),
+                input=Input(text=value, multimedia_content=multimedia_content),
                 references=[Reference(Output(text=demo_to_conds[key]), tags=[CORRECT_TAG])],
                 split=TEST_SPLIT,
             )

@@ -1,6 +1,7 @@
 import json
 from typing import List, Optional
 import re
+import yaml
 
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -52,8 +53,7 @@ def evaluate_dataset(result_reference_list):
     for tuple in result_reference_list:
         goal_conds = tuple["reference"]
         model_pred = tuple["llm_output"]
-        if model_pred is not None:
-            eval_result = evaluate_goals(model_pred, goal_conds)
+        eval_result = evaluate_goals(model_pred, goal_conds)
         
         all_satisfied_conditions.extend(eval_result['complete_metrics']['all_satisfied_conditions'])
         all_unsatisfied_conditions.extend(eval_result['complete_metrics']['all_unsatisfied_conditions'])
@@ -181,31 +181,26 @@ def compute_breakdown_metrics(all_satisfied_conditions, all_unsatisfied_conditio
 
 def parse_json(raw_llm_output):
     
-    # replace single quotes with double quotes:
+    # Replace single quotes with double quotes
     raw_llm_output = raw_llm_output.replace("'", '"')
     
-    # Extract the substring between the first { and last }
-    match = re.search(r"{.*}", raw_llm_output, re.DOTALL)
+    # Extract the substring between the first { and the first } after it
+    match = re.search(r"{[^{}]*}", raw_llm_output, re.DOTALL)
 
     if match:
         result = match.group(0)
 
-        # Remove inner curly braces
-        result_clean = re.sub(r"[{}]", "", result[1:-1])
-
-        # Re-add the outer curly braces
-        final_result = "{" + result_clean + "}"
-        
-        with open('final_result.txt', 'w') as file:
-            file.write(final_result)
-
         # Print the final cleaned result
         try:
-            return json.loads(final_result)
+            parsed_result = json.loads(result)
+            with open('intermediate_outputs/success.txt', 'a') as file:
+                file.write(str(result)+"\n\n")
+            return parsed_result
         except:
             print("Error parsing JSON-like content.")
-            with open('jsonload.txt', 'w') as file:
-                file.write(final_result)
+            with open('intermediate_outputs/fail.txt', 'a') as file:
+                file.write(str(result)+"\n\n")
+            return None
     else:
         print("No valid JSON-like content found.")
 
@@ -218,6 +213,10 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
 
     def __init__(self, delimiter: Optional[str] = None):
         self.delimiter = delimiter
+        with open('intermediate_outputs/success.txt', 'w') as file:
+                file.write(str(""))
+        with open('intermediate_outputs/fail.txt', 'w') as file:
+            file.write(str(""))
 
     def evaluate_instances(self, request_states: List[RequestState], eval_cache_path: str) -> List[Stat]:
         
@@ -225,14 +224,23 @@ class Behavior_Goal_Interpretation_Metric(EvaluateInstancesMetric):
         
         for request_state in request_states:
             goal_conds = request_state.instance.references[0].output.text['goal_conditions']
-            raw_llm_output = request_state.result.completions[0].text
+            raw_llm_output = request_state.result.completions[0].text + "}"
             
-            with open('intermediate_outputs/request_state.txt', 'w') as file:
-                file.write(str(request_state))
-            with open('goal_conds.txt', 'w') as file:
-                file.write(str(goal_conds))
-            with open('raw_llm_output.txt', 'w') as file:
-                file.write(raw_llm_output)
+            # print("------------------------------------------------------------------")
+            # print("type(request_state.result.completions):", type(request_state.result.completions))
+            # print("len(request_state.result.completions):", len(request_state.result.completions))
+            # print("type(request_state.result.completions[0]):", type(request_state.result.completions[0]))
+            # print("dir(request_state.result.completions[0]):", dir(request_state.result.completions[0]))
+            # print("request_state.result.completions[0].text + '}':", request_state.result.completions[0].text + "}")
+            # print("------------------------------------------------------------------")
+            
+            
+            # with open('intermediate_outputs/request_state.txt', 'w') as file:
+            #     file.write(str(request_state))
+            # with open('intermediate_outputs/goal_conds.txt', 'w') as file:
+            #     file.write(str(goal_conds))
+            # with open('intermediate_outputs/raw_llm_output.txt', 'w') as file:
+            #     file.write(raw_llm_output)
             model_pred = parse_json(raw_llm_output)
             
             result_reference_list.append(
