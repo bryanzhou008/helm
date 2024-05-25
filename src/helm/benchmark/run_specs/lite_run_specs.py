@@ -29,6 +29,7 @@ from helm.benchmark.scenarios.scenario import ScenarioSpec, get_scenario_cache_p
 
 from helm.benchmark.metrics.metric import MetricSpec
 import os, json
+from helm.common.general import ensure_file_downloaded
 
 @run_spec_function("Basic_LLM_Inference")
 def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_name: str) -> RunSpec:
@@ -38,7 +39,23 @@ def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_na
     
     scenario_spec = ScenarioSpec(
         class_name="helm.benchmark.scenarios.basic_llm_inference_scenario.Basic_LLM_Inference_Scenario",
-        args={"simulator": simulator, "subtask": subtask, },
+        args={"simulator": simulator, "subtask": subtask},
+    )
+    
+    
+    metric_specs = [
+        MetricSpec(
+            class_name="helm.benchmark.metrics.basic_llm_inference_metric.Basic_LLM_Inference_Metric",
+            args={"simulator": simulator, "subtask": subtask, "model_name": model_name},
+        )
+    ]
+    
+    
+    ensure_file_downloaded(
+        source_url="https://drive.google.com/uc?id=1LKUxmyC6qsPhGgbHYUN6sQEGymwXFt7X",
+        target_path="HELM_input",
+        unpack=True,
+        unpack_type="unzip",
     )
     
     system_setup_file_path = os.path.join("HELM_input", simulator, subtask, "system_setup.json")
@@ -53,13 +70,6 @@ def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_na
         stop_sequences=system_setup["stop_sequences"],
     )
 
-    
-    metric_specs = [
-        MetricSpec(
-            class_name="helm.benchmark.metrics.basic_llm_inference_metric.Basic_LLM_Inference_Metric",
-            args={"simulator": simulator, "subtask": subtask, "model_name": model_name},
-        )
-    ]
 
     return RunSpec(
         name="basic_llm_inference",

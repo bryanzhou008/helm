@@ -57,7 +57,7 @@ class Basic_LLM_Inference_Metric(EvaluateInstancesMetric):
         self.model_name = model_name
 
 
-    def evaluate_instances(self, request_states: List[RequestState]) -> List[Stat]:
+    def evaluate_instances(self, request_states: List[RequestState], eval_cache_path: str) -> List[Stat]:
         
         llm_output_list = []
         
@@ -76,10 +76,10 @@ class Basic_LLM_Inference_Metric(EvaluateInstancesMetric):
                     "llm_output": raw_llm_output,
                 }
             )
-        
-        save_path = os.path.join("HELM_output", self.simulator, self.subtask, self.model_name + "_outputs.json")
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
+        save_dir = os.path.join("HELM_output", self.simulator, self.subtask)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        save_path = os.path.join(save_dir , self.model_name + "_outputs.json")
         with open(save_path, "w") as json_file:
             json.dump(llm_output_list, json_file, indent=4)
         

@@ -20,13 +20,15 @@ class Basic_LLM_Inference_Scenario(Scenario):
     tags = ["instructions"]
 
     def __init__(self, simulator: str, subtask: str):
-        super().__init__()
         self.simulator = simulator
         self.subtask = subtask
+        super().__init__()
+        
+
 
     def download_data(self, path: str):
         ensure_file_downloaded(
-            source_url="https://drive.google.com/uc?id=116q05b_obktK5hVg7YqBfM5USFGCKDqP",
+            source_url="https://drive.google.com/uc?id=1yavKQJCtV4TbiD2YeI0mPPWEkBoDy0_A",
             target_path=path,
             unpack=True,
             unpack_type="unzip",
@@ -34,19 +36,20 @@ class Basic_LLM_Inference_Scenario(Scenario):
 
     def get_instances(self, output_path: str) -> List[Instance]:
         # Download the raw data
-        data_path: str = "HELM_input"
-        self.download_data(data_path)
-
+        self.data_path: str = "HELM_input"
+        self.download_data(self.data_path)
+        
+        
         # Read all the instances
         instances: List[Instance] = []
 
-        user_prompt_path = os.path.join(data_path, self.simulator, self.subtask, "user_prompts.json")
+        user_prompt_path = os.path.join(self.data_path, self.simulator, self.subtask, "user_prompts.json")
         
         with open(user_prompt_path, "r") as json_file:
             user_prompts = json.load(json_file)
         
         # include the index here for debugging purposes
-        for index, (key, value) in enumerate(user_prompts.items()):
+        for value in user_prompts:
             instance = Instance(
                 id = value["identifier"],
                 input=Input(text=value["llm_prompt"]),
