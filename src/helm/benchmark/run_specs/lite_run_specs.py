@@ -27,6 +27,53 @@ from helm.benchmark.run_spec import RunSpec, run_spec_function
 from helm.benchmark.runner import get_benchmark_output_path
 from helm.benchmark.scenarios.scenario import ScenarioSpec, get_scenario_cache_path
 
+from helm.benchmark.metrics.metric import MetricSpec
+import os, json
+
+@run_spec_function("Basic_LLM_Inference")
+def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_name: str) -> RunSpec:
+    """
+        Defines Scenario Specs, Metric Specs, and Adapter Specs for Basic LLM Inference
+    """
+    
+    scenario_spec = ScenarioSpec(
+        class_name="helm.benchmark.scenarios.basic_llm_inference_scenario.Basic_LLM_Inference_Scenario",
+        args={"simulator": simulator, "subtask": subtask, },
+    )
+    
+    system_setup_file_path = os.path.join("HELM_input", simulator, subtask, "system_setup.json")
+    with open(system_setup_file_path, "r") as json_file:
+        system_setup = json.load(json_file)
+    
+    
+    adapter_spec = get_generation_adapter_spec(
+        instructions=system_setup["system_prompt"],
+        max_train_instances=0,
+        max_tokens=system_setup["max_output_tokens"],
+        stop_sequences=system_setup["stop_sequences"],
+    )
+
+    
+    metric_specs = [
+        MetricSpec(
+            class_name="helm.benchmark.metrics.basic_llm_inference_metric.Basic_LLM_Inference_Metric",
+            args={"simulator": simulator, "subtask": subtask, "model_name": model_name},
+        )
+    ]
+
+    return RunSpec(
+        name="basic_llm_inference",
+        scenario_spec=scenario_spec,
+        adapter_spec=adapter_spec,
+        metric_specs=metric_specs,
+        groups=["basic_llm_inference"],
+    )
+
+
+
+
+
+
 @run_spec_function("Behavior_Goal_Interpretation")
 def get_behavior_goal_interpretation_spec(mode:str) -> RunSpec:
     """
