@@ -51,10 +51,11 @@ class Basic_LLM_Inference_Metric(EvaluateInstancesMetric):
     Defines metrics for the Basic_LLM_Inference scenario.
     """
 
-    def __init__(self, simulator: str, subtask: str, model_name: str):
+    def __init__(self, simulator: str, subtask: str, model_name: str, add_back_sequence: str):
         self.simulator = simulator
         self.subtask = subtask
         self.model_name = model_name
+        self.add_back_sequence = add_back_sequence
 
 
     def evaluate_instances(self, request_states: List[RequestState], eval_cache_path: str) -> List[Stat]:
@@ -62,11 +63,11 @@ class Basic_LLM_Inference_Metric(EvaluateInstancesMetric):
         llm_output_list = []
         
         for request_state in request_states:
-            raw_llm_output = request_state.result.completions[0].text + "}"
+            raw_llm_output = request_state.result.completions[0].text
             
             
-            # if we are using json output with stop sequence }:
-            raw_llm_output = raw_llm_output + "}"
+            # add back the stop sequence because it was previously removed:
+            raw_llm_output = raw_llm_output + self.add_back_sequence
             # if we are checking how many outputs are parsable:
             # model_pred = parse_json(raw_llm_output)
             

@@ -43,16 +43,8 @@ def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_na
     )
     
     
-    metric_specs = [
-        MetricSpec(
-            class_name="helm.benchmark.metrics.basic_llm_inference_metric.Basic_LLM_Inference_Metric",
-            args={"simulator": simulator, "subtask": subtask, "model_name": model_name},
-        )
-    ]
-    
-    
     ensure_file_downloaded(
-        source_url="https://drive.google.com/uc?id=1LKUxmyC6qsPhGgbHYUN6sQEGymwXFt7X",
+        source_url="https://drive.google.com/uc?id=1ys5yRFNPYpN9HFa8kANu4ZS-Qg9z00HM",
         target_path="HELM_input",
         unpack=True,
         unpack_type="unzip",
@@ -62,13 +54,30 @@ def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_na
     with open(system_setup_file_path, "r") as json_file:
         system_setup = json.load(json_file)
     
+    assert len(system_setup["stop_sequences"]) == 1 # "Only one single stop sequence is supported for now."
+    
+    if model_name in ["llama-3-70b-chat", "llama-3-8b-chat"]:
+        add_back_sequence = ""
+        stop_sequences = ["<|eot_id|>"]
+        # stop_sequences = ""
+    else:
+        add_back_sequence = system_setup["stop_sequences"][0]
+        stop_sequences = system_setup["stop_sequences"]
+    
     
     adapter_spec = get_generation_adapter_spec(
         instructions=system_setup["system_prompt"],
         max_train_instances=0,
         max_tokens=system_setup["max_output_tokens"],
-        stop_sequences=system_setup["stop_sequences"],
+        stop_sequences=stop_sequences,
     )
+    
+    metric_specs = [
+        MetricSpec(
+            class_name="helm.benchmark.metrics.basic_llm_inference_metric.Basic_LLM_Inference_Metric",
+            args={"simulator": simulator, "subtask": subtask, "model_name": model_name, "add_back_sequence": add_back_sequence},
+        )
+    ]
 
 
     return RunSpec(

@@ -28,7 +28,7 @@ class Basic_LLM_Inference_Scenario(Scenario):
 
     def download_data(self, path: str):
         ensure_file_downloaded(
-            source_url="https://drive.google.com/uc?id=1yavKQJCtV4TbiD2YeI0mPPWEkBoDy0_A",
+            source_url="https://drive.google.com/uc?id=1ys5yRFNPYpN9HFa8kANu4ZS-Qg9z00HM",
             target_path=path,
             unpack=True,
             unpack_type="unzip",
