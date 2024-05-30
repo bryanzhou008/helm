@@ -19,9 +19,10 @@ class Basic_LLM_Inference_Scenario(Scenario):
     description = "Basic_LLM_Inference"
     tags = ["instructions"]
 
-    def __init__(self, simulator: str, subtask: str):
+    def __init__(self, simulator: str, subtask: str, model_name: str):
         self.simulator = simulator
         self.subtask = subtask
+        self.model_name = model_name
         super().__init__()
         
 
@@ -47,6 +48,10 @@ class Basic_LLM_Inference_Scenario(Scenario):
         
         with open(user_prompt_path, "r") as json_file:
             user_prompts = json.load(json_file)
+        
+        # for goal_interpretation_plus_action_sequencing and goal_interpretation_plus_subgoal_decomposition, use different prompts for each model
+        if self.subtask in ["goal_interpretation_plus_action_sequencing", "goal_interpretation_plus_subgoal_decomposition"]:
+            user_prompts = user_prompts[self.model_name]
         
         # include the index here for debugging purposes
         for value in user_prompts:

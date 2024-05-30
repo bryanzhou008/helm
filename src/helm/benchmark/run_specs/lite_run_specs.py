@@ -39,7 +39,7 @@ def get_behavior_goal_interpretation_spec(simulator: str, subtask: str, model_na
     
     scenario_spec = ScenarioSpec(
         class_name="helm.benchmark.scenarios.basic_llm_inference_scenario.Basic_LLM_Inference_Scenario",
-        args={"simulator": simulator, "subtask": subtask},
+        args={"simulator": simulator, "subtask": subtask, "model_name": model_name},
     )
     
     
