@@ -97,15 +97,15 @@ Rating: (int)"""
         metric_service: MetricService,
         eval_cache_path: str,
     ) -> List[Stat]:
-        input_content = request_state.instance.input
+        input_content = request_state.request
         # Predicted outputs and their originality scores
         assert request_state.result is not None
         request_result: RequestResult = request_state.result
         # Get input image and generated response for the originality evaluation
-        assert input_content.multimedia_content is not None
+        assert input_content.multimodal_prompt is not None
         completions: List[GeneratedOutput] = request_result.completions
         generated_text: str = completions[0].text
-        input_media: MultimediaObject = input_content.multimedia_content
+        input_media: MultimediaObject = input_content.multimodal_prompt
         ref_text: str = request_state.instance.references[0].output.text
 
         image_objects: List[MediaObject] = [
